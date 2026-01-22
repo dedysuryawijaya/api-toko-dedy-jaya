@@ -1,0 +1,40 @@
+{
+  "name": "api-toko-dedy-jaya",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "Dedy Surya Wijaya",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.[t|j]sx?$": "babel-jest"
+    }
+  },
+  "dependencies": {
+    "@prisma/client": "^7.3.0",
+    "bcrypt": "^6.0.0",
+    "express": "^5.2.1",
+    "uuid": "^13.0.0",
+    "winston": "^3.19.0",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.28.6",
+    "@babel/preset-typescript": "^7.28.5",
+    "@jest/globals": "^30.2.0",
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
+    "@types/supertest": "^6.0.3",
+    "@types/uuid": "^10.0.0",
+    "babel-jest": "^30.2.0",
+    "jest": "^30.2.0",
+    "prisma": "^7.3.0",
+    "supertest": "^7.2.2",
+    "typescript": "^5.9.3"
+  }
+}

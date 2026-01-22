@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int  @id @default(autoincrement())
+  email     String   @unique @db.VarChar(100)
+  password  String   @db.VarChar(255)
+  name      String?   @db.VarChar(100)
+  phone     String?   @db.VarChar(20)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tokens Token[]
+
+  @@map("users")
+}
+
+model Token {
+  id        Int   @id @default(autoincrement())
+  userId    Int
+  deviceId String?   @db.VarChar(255)
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+
+  @@map("tokens")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  barcode     String?   @unique @db.VarChar(100)
+  name        String?   @db.VarChar(255)
+  description String?  @db.Text
+  price       Float    @default(0)
+  stock       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  saleItems SaleItem[]
+
+  @@map("products")
+}
+
+model Sale {
+  id         String   @id @default(uuid())
+  orderId    String   @unique @db.VarChar(100)
+  quantity   Int      @default(1)
+  customer   String?  @default("customer") @db.VarChar(100) 
+  totalPrice Float
+  saleDate   DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  saleItems SaleItem[]
+
+  @@index([orderId])
+  @@map("sales")
+}
+
+model SaleItem {
+  id        Int      @id @default(autoincrement())
+  saleId    String   @db.VarChar(100)
+  productId String   @db.VarChar(100)
+  quantity  Int      @default(1)
+  price     Float
+  total     Float
+  productName String   @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sale    Sale    @relation(fields: [saleId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([saleId])
+  @@index([productId])
+
+  @@map("sale_items")
+}

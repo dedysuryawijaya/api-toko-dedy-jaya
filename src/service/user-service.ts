@@ -75,6 +75,10 @@ export class UserService {
             user.password = await bcrypt.hash(updateRequest.password, 10);
         }
 
+        if (updateRequest.name) {
+            user.name = updateRequest.name
+        }
+
         const updatedUser = await prismaClient.user.update({
             where: { id: user.id },
             data: user,

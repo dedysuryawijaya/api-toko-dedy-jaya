@@ -1,9 +1,9 @@
 import { z, ZodType } from "zod";
-import { CreateProduct, UpdateProduct } from "../model/product-model.js";
+import { CreateProductInput, UpdateProductInput } from "../model/product-model.js";
 
 export class ProductValidation {
     
-    static readonly CREATE_PRODUCT: ZodType<CreateProduct> = z.object({
+    static readonly CREATE_PRODUCT: ZodType<CreateProductInput> = z.object({
         barcode: z.string().min(1, 'Barcode is required').nullable(),
         name: z.string().min(1, 'Name is required'),
         description: z.string().nullable(),
@@ -11,7 +11,7 @@ export class ProductValidation {
         stock: z.number().min(0, 'Stock must be a positive number'),
     });
 
-    static readonly UPDATE_PRODUCT: ZodType<UpdateProduct> = z.object({
+    static readonly UPDATE_PRODUCT: ZodType<UpdateProductInput> = z.object({
         barcode: z.string().min(1, 'Barcode is required').optional(),
         name: z.string().min(1, 'Name is required').optional(),
         description: z.string().optional(),

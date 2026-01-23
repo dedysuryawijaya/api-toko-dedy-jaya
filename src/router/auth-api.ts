@@ -5,3 +5,5 @@ import { authMiddleware } from "../middleware/auth-middleware.js";
 export const authRouter = express.Router();
 authRouter.use(authMiddleware);
 authRouter.get("/api/user", UserController.getUser);
+authRouter.put("/api/user", UserController.updateUser);
+authRouter.post("/api/logout", UserController.logout);

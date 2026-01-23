@@ -9,7 +9,17 @@ export type TokenResponse = {
 
 export type CreateTokenInput = {
     userId: number;
+    deviceId: string;
     token: string;
+}
+
+export type LogoutTokenInput = {
+    deviceId: string;
+}
+
+export type RefreshTokenInput = {
+    token: string;
+    deviceId: string;
 }
 
 export function toTokenResponse(token: Token, accessToken: string): TokenResponse {

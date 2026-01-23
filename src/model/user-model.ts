@@ -27,10 +27,7 @@ export type UpdateUserInput = {
 export type LoginInput = {
     email: string;
     password: string;
-}
-
-export type RefreshTokenInput = {
-    token: string;
+    deviceId: string;
 }
 
 export function toUserResponse(user: User): UserResponse {

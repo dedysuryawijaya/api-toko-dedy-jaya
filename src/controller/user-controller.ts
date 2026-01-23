@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { UserService } from "../service/user-service.js";
-import { CreateUserInput, LoginInput } from "../model/user-model.js";
+import { CreateUserInput, LoginInput, toUserResponse } from "../model/user-model.js";
 import { logger } from "../application/logging.js";
+import { UserRequest } from "../utils/user-request.js";
+import { User } from "@prisma/client";
 
 export class UserController {
     
@@ -21,6 +23,17 @@ export class UserController {
             const request = req.body as LoginInput;
             const response = await UserService.login(request);
             res.status(200).json({data: response});
+        } catch (e) {
+            logger.error(e);
+            next(e);
+        }
+    }
+
+    static async getUser(req: UserRequest, res: Response, next: NextFunction) {
+        try {
+            const user = req.user as User;
+            const response = toUserResponse(user);
+            res.status(200).json({ data: response });
         } catch (e) {
             logger.error(e);
             next(e);

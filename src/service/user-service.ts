@@ -3,6 +3,7 @@ import { ResponseError } from '../error/response-error.js';
 import { CreateUserInput, toUserResponse, UserResponse } from '../model/user-model.js';
 import { UserValidation } from '../validation/user-validation.js';
 import { Validation } from '../validation/validation.js';
+import bcrypt from 'bcrypt';
 
 export class UserService {
     static async register(input: CreateUserInput): Promise<UserResponse> {
@@ -23,6 +24,8 @@ export class UserService {
         if (phoneExists > 0) {
             throw new ResponseError('Phone number already in use', 400);
         }
+
+        registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
 
         const newUser = await prismaClient.user.create({
             data: registerRequest,

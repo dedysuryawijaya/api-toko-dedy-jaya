@@ -1,6 +1,9 @@
 import { prismaClient } from '../application/database.js';
 import { ResponseError } from '../error/response-error.js';
-import { CreateUserInput, toUserResponse, UserResponse } from '../model/user-model.js';
+import { TokenResponse, toTokenResponse } from '../model/token-model.js';
+import { CreateUserInput, LoginInput, toUserResponse, UserResponse } from '../model/user-model.js';
+import { signJwt } from '../utils/jwt-util.js';
+import { generateRefreshToken } from '../utils/refresh-token.js';
 import { UserValidation } from '../validation/user-validation.js';
 import { Validation } from '../validation/validation.js';
 import bcrypt from 'bcrypt';
@@ -32,5 +35,38 @@ export class UserService {
         });
 
         return toUserResponse(newUser);
+    }
+
+    static async login(input: LoginInput): Promise<TokenResponse> {
+        const loginRequest = Validation.validate<LoginInput>(UserValidation.LOGIN, input);
+
+        const user = await prismaClient.user.findFirst({
+            where: { email: loginRequest.email },
+        });
+
+        if (!user) {
+            throw new ResponseError('Invalid email or password', 401);
+        }
+
+        const passwordMatch = await bcrypt.compare(loginRequest.password, user.password);
+        if (!passwordMatch) {
+            throw new ResponseError('Invalid email or password', 401);
+        }
+
+        const accessToken = signJwt({
+            userId: user.id,
+            email: user.email!,
+        })
+
+        const refreshToken = generateRefreshToken();
+
+        const token = await prismaClient.token.create({
+            data: {
+                userId: user.id,
+                token: refreshToken,
+            },
+        });
+
+        return toTokenResponse(token, accessToken);
     }
 }

@@ -27,6 +27,19 @@ export type UpdateProductInput = {
     stock?: number | undefined;
 }
 
+export type ProductFilterInput = {
+    barcode?: string | undefined;
+    name?: string | undefined;
+    minPrice?: number | undefined;
+    maxPrice?: number | undefined;
+    minStock?: number | undefined;
+    maxStock?: number | undefined;
+    orderBy: string;
+    sortBy: string;
+    page: number ;
+    size: number;
+}
+
 export function toProductResponse(product: Product): ProductResponse {
     return {
         id: product.id,

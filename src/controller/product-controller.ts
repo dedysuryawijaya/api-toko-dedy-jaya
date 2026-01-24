@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction} from 'express';
 import { UserRequest } from '../utils/user-request.js';
 import { ProductService } from '../service/product-service.js';
-import { CreateProductInput, UpdateProductInput } from '../model/product-model.js';
+import { CreateProductInput, ProductFilterInput, UpdateProductInput } from '../model/product-model.js';
 import { logger } from '../application/logging.js';
 
 export class ProductController {
@@ -45,6 +45,34 @@ export class ProductController {
             const barcode: string = String(req.params.barcode);
             const response = await ProductService.getProductByBarcode(barcode);
             res.status(200).json({ data: response });
+        } catch (e) {
+            logger.error(e);
+            next(e);
+        }
+    }
+
+    static async search(req: UserRequest, res: Response, next: NextFunction) {
+        try {
+            const request: ProductFilterInput = {
+                ...req.query,
+                page: req.query.page ? parseInt(String(req.query.page)) : 1,
+                size: req.query.size ? parseInt(String(req.query.size)) : 10,
+                orderBy: req.query.orderBy ? String(req.query.orderBy) : 'createdAt',
+                sortBy: req.query.sortBy ? String(req.query.sortBy) : 'desc',
+            }
+            const response = await ProductService.search(request);
+            res.status(200).json(response);
+        } catch (e) {
+            logger.error(e);
+            next(e);
+        }
+    }
+
+    static async delete(req: UserRequest, res: Response, next: NextFunction) {
+        try {
+            const productId: string = String(req.params.id);
+            await ProductService.delete(productId);
+            res.status(204).json({ message: 'OK' });
         } catch (e) {
             logger.error(e);
             next(e);

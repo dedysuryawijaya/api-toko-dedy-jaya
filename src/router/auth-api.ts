@@ -11,6 +11,8 @@ authRouter.post("/api/logout", UserController.logout);
 
 //product routes
 authRouter.post("/api/products", ProductController.create);
-authRouter.put("/api/products/:id", ProductController.update);
-authRouter.get("/api/products/:id", ProductController.getById);
+authRouter.get("/api/products/search", ProductController.search);
 authRouter.get("/api/products/barcode/:barcode", ProductController.getByBarcode);
+authRouter.get("/api/products/:id", ProductController.getById);
+authRouter.put("/api/products/:id", ProductController.update);
+authRouter.delete("/api/products/:id", ProductController.delete);

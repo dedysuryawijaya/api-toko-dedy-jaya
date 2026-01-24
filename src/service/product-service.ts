@@ -4,8 +4,8 @@ import { CreateProductInput, ProductFilterInput, ProductResponse, toProductRespo
 import { Validation } from "../validation/validation.js";
 import { ProductValidation } from "../validation/product-validation.js";
 import { ResponseError } from "../error/response-error.js";
-import moment from "moment";
 import { PaginatedResult } from "../model/pagination.js";
+import moment from "moment";
 
 
 export class ProductService {

@@ -28,6 +28,19 @@ export type CreateSaleInput = {
     saleDate: Date;
 }
 
+export type FilterSaleInput = {
+    orderId?: string | undefined;
+    minTotalPrice?: number | undefined;
+    maxTotalPrice?: number | undefined;
+    customer?: string | undefined;
+    startDate?: Date | undefined;
+    endDate?: Date | undefined;
+    orderBy: string;
+    sortBy: string;
+    page: number ;
+    size: number;
+}
+
 export function toSaleResponse(sale: Sale, items: Array<SaleItemResponse>): SaleResponse {
     return {
         id: sale.id,

@@ -1,13 +1,13 @@
 import { prismaClient } from "../application/database.js";
 import { Sale, SaleItem } from "@prisma/client";
-import { CreateSaleInput, CreateSaleRequest, SaleResponse, toSaleResponse } from "../model/sale-model.js";
-import { CreateSaleItemInput, SaleItemResponse, toSaleItemResponse } from "../model/sale-items-model.js";
+import { CreateSaleInput, CreateSaleRequest, SaleResponse, FilterSaleInput, toSaleResponse } from "../model/sale-model.js";
+import { CreateSaleItemInput, SaleItemResponse,toSaleItemResponse } from "../model/sale-items-model.js";
 import { Validation } from "../validation/validation.js";
 import { SaleValidation } from "../validation/sale-validation.js";
 import { ResponseError } from "../error/response-error.js";
 import { ProductService } from "./product-service.js";
 import moment from "moment";
-import { map } from "zod";
+import { PaginatedResult } from "../model/pagination.js";
 
 export class SaleService {
 
@@ -72,5 +72,100 @@ export class SaleService {
         })
 
         return response;
+    }
+
+    static async getById(saleId: string): Promise<SaleResponse> {
+        const sale = await prismaClient.sale.findUnique({
+            where: { id: saleId },
+        });
+        if (!sale) {
+            throw new ResponseError('Sale not found', 404);
+        }
+        const saleItems = await prismaClient.saleItem.findMany({
+            where: { saleId: sale.id },
+        });
+        const saleItemResponses: SaleItemResponse[] = saleItems.map(item => toSaleItemResponse(item));
+        return toSaleResponse(sale, saleItemResponses);
+    }
+
+    static async getByOrderId(orderId: string): Promise<SaleResponse> {
+        const sale = await prismaClient.sale.findUnique({
+            where: { orderId: orderId },
+        });
+        if (!sale) {
+            throw new ResponseError('Sale not found', 404);
+        }
+        const saleItems = await prismaClient.saleItem.findMany({
+            where: { saleId: sale.id },
+        });
+        const saleItemResponses: SaleItemResponse[] = saleItems.map(item => toSaleItemResponse(item));
+        return toSaleResponse(sale, saleItemResponses);
+    }
+
+    static async search(filter: FilterSaleInput): Promise<PaginatedResult<SaleResponse>> {
+        const filterRequest = Validation.validate<FilterSaleInput>(SaleValidation.FILTER_SALE, filter);
+
+        const where: object = {
+            ...(filterRequest.orderId && { orderId: filterRequest.orderId }),
+            ...(filterRequest.minTotalPrice !== undefined && { totalPrice: { gte: filterRequest.minTotalPrice } }),
+            ...(filterRequest.maxTotalPrice !== undefined && { totalPrice: { lte: filterRequest.maxTotalPrice } }),
+            ...(filterRequest.customer && { customer: {
+                contains: filterRequest.customer,
+                mode: 'insensitive'
+            } }),
+            ...(filterRequest.startDate && { saleDate: { gte: filterRequest.startDate } }),
+            ...(filterRequest.endDate && { saleDate: { lte: filterRequest.endDate } }),
+        };
+
+        const sales = await prismaClient.sale.findMany({
+            where: where,
+            include:{
+                saleItems: true,
+            },
+            orderBy: {
+                [filterRequest.orderBy]: filterRequest.sortBy.toLowerCase() === 'asc' ? 'asc' : 'desc',
+            },
+            skip: (filterRequest.page - 1) * filterRequest.size,
+            take: filterRequest.size,
+        });
+
+        const totalSales = await prismaClient.sale.count({
+            where: where,
+        });
+
+        const totalPages = Math.ceil(totalSales / filterRequest.size);
+
+        const saleResponses: SaleResponse[] = sales.map(sale => {
+            const saleItemResponses: SaleItemResponse[] = sale.saleItems.map(item => toSaleItemResponse(item));
+            return toSaleResponse(sale as Sale, saleItemResponses);
+        });
+
+        return {
+            data: saleResponses,
+            paging: {
+                page: filterRequest.page,
+                size: filterRequest.size,
+                total_page: totalPages,
+                total_items: totalSales,
+            }
+        };
+    }
+
+    static async delete(saleId: string): Promise<void> {
+        const sale = await prismaClient.sale.findUnique({
+            where: { id: saleId },
+        });
+
+        if (!sale) {
+            throw new ResponseError('Sale not found', 404);
+        }
+        await prismaClient.$transaction(async (tx) => {
+            await tx.saleItem.deleteMany({
+                where: { saleId: sale.id },
+            });
+            await tx.sale.delete({
+                where: { id: sale.id },
+            });
+        });
     }
 }

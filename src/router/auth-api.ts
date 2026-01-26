@@ -20,3 +20,7 @@ authRouter.delete("/api/products/:id", ProductController.delete);
 
 //sale routes
 authRouter.post("/api/sales", SaleController.createSale);
+authRouter.get("/api/sales/search", SaleController.search);
+authRouter.get("/api/sales/order/:orderId", SaleController.getByOrderId);
+authRouter.get("/api/sales/:id", SaleController.getById);
+authRouter.delete("/api/sales/:id", SaleController.delete);

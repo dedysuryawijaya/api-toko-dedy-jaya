@@ -5,10 +5,10 @@
   "license": "ISC",
   "author": "Dedy Surya Wijaya",
   "type": "module",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "jest",
-    "dev": "tsx --watch src/main.ts",
+    "dev": "tsx --watch src/server.ts",
     "build": "tsc"
   },
   "jest": {

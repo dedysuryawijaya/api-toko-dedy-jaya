@@ -9,7 +9,9 @@
   "scripts": {
     "test": "jest",
     "dev": "tsx --watch src/server.ts",
-    "build": "prisma generate",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "prisma:generate": "prisma generate",
     "postinstall": "prisma generate"
   },
   "jest": {

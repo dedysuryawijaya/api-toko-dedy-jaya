@@ -3,6 +3,7 @@ import { UserRequest } from '../utils/user-request.js';
 import { ProductService } from '../service/product-service.js';
 import { CreateProductInput, ProductFilterInput, UpdateProductInput } from '../model/product-model.js';
 import { logger } from '../application/logging.js';
+import { ResponseError } from '../error/response-error.js';
 
 export class ProductController {
 
@@ -33,6 +34,22 @@ export class ProductController {
         try {
             const productId: string = String(req.params.id);
             const response = await ProductService.getProductById(productId);
+            res.status(200).json({ data: response });
+        } catch (e) {
+            logger.error(e);
+            next(e);
+        }
+    }
+
+    static async importFromAPI(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { page } = req.body;
+            
+            if (!page || typeof page !== 'number' || page < 1) {
+                throw new ResponseError('Page must be a positive number', 400);
+            }
+            
+            const response = await ProductService.importFromAPI(page);
             res.status(200).json({ data: response });
         } catch (e) {
             logger.error(e);

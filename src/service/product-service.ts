@@ -6,6 +6,31 @@ import { ProductValidation } from "../validation/product-validation.js";
 import { ResponseError } from "../error/response-error.js";
 import { PaginatedResult } from "../model/pagination.js";
 import moment from "moment";
+import { logger } from "../application/logging.js";
+
+interface ProductFromAPI {
+    brands?: string;
+    code?: string;
+    product_name?: string;
+    product_name_id?: string;
+    quantity?: string;
+}
+
+interface APIResponse {
+    count: number;
+    page: number;
+    page_count: number;
+    page_size: number;
+    products: ProductFromAPI[];
+}
+
+export interface ImportResult {
+    page: number;
+    imported: number;
+    skipped: number;
+    total_in_page: number;
+    message: string;
+}
 
 
 export class ProductService {
@@ -130,5 +155,107 @@ export class ProductService {
         await prismaClient.product.delete({
             where: { id: product.id },
         });
+    }
+
+    static async importFromAPI(page: number): Promise<ImportResult> {
+        const url = `https://world.openfoodfacts.org/api/v2/search?countries_tags_en=indonesia&page_size=100&page=${page}&fields=product_name,brands,code,product_name_id,quantity`;
+        
+        const username = 'wydesu';
+        const password = 'Wijaya372000';
+        
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': "Basic " + btoa(`${username}:${password}`),
+                    'User-Agent': 'TokoDelyJaya/1.0'
+                }
+            });
+
+            if (!response.ok) {
+                throw new ResponseError(`Failed to fetch from API: ${response.status} ${response.statusText}`, 500);
+            }
+
+            const data: APIResponse = await response.json();
+            
+            if (!data.products || data.products.length === 0) {
+                return {
+                    page,
+                    imported: 0,
+                    skipped: 0,
+                    total_in_page: 0,
+                    message: 'No products found on this page'
+                };
+            }
+
+            let imported = 0;
+            let skipped = 0;
+
+            for (const product of data.products) {
+                // Skip jika code tidak ada
+                if (!product.code) {
+                    skipped++;
+                    continue;
+                }
+                
+                // Gunakan product_name atau product_name_id
+                const name = product.product_name || product.product_name_id || "Belum ada nama product";
+                if (!name) {
+                    logger.warn(`Product with code ${product.code} has no name, skipping...`);
+                    skipped++;
+                    continue;
+                }
+                
+                // Buat deskripsi dari kombinasi brands + product_name/product_name_id + quantity
+                const descriptionParts = [];
+                if (product.brands) descriptionParts.push(product.brands);
+                if (name) descriptionParts.push(name);
+                if (product.quantity) descriptionParts.push(product.quantity);
+                const description = descriptionParts.join(' - ');
+                
+                try {
+                    // Check apakah barcode sudah ada
+                    const existing = await prismaClient.product.findUnique({
+                        where: { barcode: product.code }
+                    });
+                    
+                    if (existing) {
+                        skipped++;
+                        continue;
+                    }
+                    
+                    // Insert product baru
+                    await prismaClient.product.create({
+                        data: {
+                            barcode: product.code,
+                            name: name,
+                            description: description || null,
+                            price: 0,
+                            stock: 0,
+                        }
+                    });
+                    
+                    imported++;
+                    
+                } catch (error) {
+                    logger.error(`Error importing product ${product.code}:`, error);
+                    skipped++;
+                }
+            }
+
+            return {
+                page,
+                imported,
+                skipped,
+                total_in_page: data.products.length,
+                message: `Successfully processed page ${page}`
+            };
+            
+        } catch (error) {
+            logger.error(`Error fetching from API:`, error);
+            if (error instanceof ResponseError) {
+                throw error;
+            }
+            throw new ResponseError('Failed to import products from API', 500);
+        }
     }
 }

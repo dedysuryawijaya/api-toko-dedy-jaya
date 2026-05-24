@@ -11,6 +11,7 @@ export class SaleController {
         try {
             const request: CreateSaleRequest = {
                 customer: req.body.customer ?? 'Umum',
+                cashAmount: req.body.cashAmount,
                 saleDate: req.body.saleDate ?? moment().toDate(),
                 items: req.body.items,
             }

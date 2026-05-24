@@ -230,7 +230,7 @@ export class ProductService {
                             name: name,
                             description: description || null,
                             price: 0,
-                            stock: 0,
+                            stock: 10,
                         }
                     });
                     

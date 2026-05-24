@@ -62,6 +62,8 @@ model Sale {
   quantity   Int      @default(1)
   customer   String?  @default("customer") @db.VarChar(100) 
   totalPrice Float
+  cashAmount Float    @default(0)
+  changeAmount Float  @default(0)
   saleDate   DateTime @default(now())
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

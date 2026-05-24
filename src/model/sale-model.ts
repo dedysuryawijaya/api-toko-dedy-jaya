@@ -6,6 +6,8 @@ export type SaleResponse = {
     orderId: string;
     quantity: number;
     totalPrice: number;
+    cashAmount: number;
+    changeAmount: number;
     customer? : string | null;
     saleDate: Date;
     items: Array<SaleItemResponse>;
@@ -13,6 +15,7 @@ export type SaleResponse = {
 
 export type CreateSaleRequest = {
     customer : string;
+    cashAmount: number;
     saleDate: Date;
     items: Array<{
         productId: string;
@@ -24,6 +27,8 @@ export type CreateSaleInput = {
     orderId: string;
     quantity: number;
     totalPrice: number;
+    cashAmount: number;
+    changeAmount: number;
     customer: string;
     saleDate: Date;
 }
@@ -47,6 +52,8 @@ export function toSaleResponse(sale: Sale, items: Array<SaleItemResponse>): Sale
         orderId: sale.orderId,
         quantity: sale.quantity,
         totalPrice: sale.totalPrice,
+        cashAmount: sale.cashAmount,
+        changeAmount: sale.changeAmount,
         customer: sale.customer,
         saleDate: sale.saleDate,
         items: items

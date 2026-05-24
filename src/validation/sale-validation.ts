@@ -8,6 +8,7 @@ export class SaleValidation {
     
     static readonly CREATE_SALE: ZodType<CreateSaleRequest> = z.object({
         customer: z.string().min(1),
+        cashAmount: z.number().min(0),
         saleDate: z.coerce.date(),
         items: z.array(z.object({
             productId: z.string().min(1),

@@ -17,6 +17,8 @@ export class SaleService {
             orderId: `ORD-${moment().format('YYYYMMDDHHmmss')}`,
             quantity: saleRequest.items.length,
             totalPrice: 0,
+            cashAmount: saleRequest.cashAmount,
+            changeAmount: 0,
             customer: saleRequest.customer,
             saleDate: saleRequest.saleDate,
         };
@@ -63,9 +65,14 @@ export class SaleService {
                 data: saleItems,
             });
 
+            const changeAmount = saleRequest.cashAmount - totalPrice;
+            
             const updatedSale = await tx.sale.update({
                 where: { id: newSale.id },
-                data: { totalPrice: totalPrice },
+                data: { 
+                    totalPrice: totalPrice,
+                    changeAmount: changeAmount
+                },
             });
 
             return toSaleResponse(updatedSale, saleItems.map(item => toSaleItemResponse(item as SaleItem)));

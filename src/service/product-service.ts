@@ -175,7 +175,7 @@ export class ProductService {
                 throw new ResponseError(`Failed to fetch from API: ${response.status} ${response.statusText}`, 500);
             }
 
-            const data: APIResponse = await response.json();
+            const data = await response.json() as APIResponse;
             
             if (!data.products || data.products.length === 0) {
                 return {
